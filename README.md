@@ -103,68 +103,76 @@ docker logs -f mtproxy
 ## 使用方式
 
 配置文件 `config`，如果你想手动修改密钥或者参数请注意格式。
-
-运行服务
-
 ```bash
-bash mtproxy.sh start
-```
-
-调试运行
-
-```bash
-bash mtproxy.sh debug
-```
-
-停止服务
-
-```bash
-bash mtproxy.sh stop
-```
-
-重启服务
-
-```bash
-bash mtproxy.sh restart
-```
-
-重新安装/重新配置
-
-```bash
-bash mtproxy.sh reinstall
-```
-
-## 卸载安装
-
-因为是绿色版卸载极其简单，直接删除所在目录即可。
-
-```bash
-rm -rf /home/mtproxy
+vim /home/mtproxy/config
 ```
 
 ## 开机启动
 
-> 该脚本没有配置为系统服务的方式，你可以将其添加到开机启动脚本中。
-
-开机启动脚本，如果你的 rc.local 文件不存在请检查开机自启服务。
-
-通过编辑文件`/etc/rc.local`将如下代码加入到开机自启脚本中：
-
+> 先创建系统服务
 ```bash
-cd /home/mtproxy && bash mtproxy.sh start > /dev/null 2>&1 &
+cat > /etc/systemd/system/mtproxy.service <<EOF
+[Unit]
+Description=MTProto Proxy Service
+After=network.target
+
+[Service]
+Type=forking
+WorkingDirectory=/home/mtproxy
+ExecStart=bash mtproxy.sh start
+ExecStop=bash mtproxy.sh stop
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
 ```
 
-## 计划任务守护
-
-由于默认官方的 mtproxy 程序存在BUG，在 pid 大于 65535 时进程处理存在问题，进程容易坏死和异常退出。
-
-因此建议通过计划任务去守护进程 `crontab -e` ：
-
-每分钟检测进程并启动
-
+>启用服务（开机自启）
 ```bash
-* * * * * cd /home/mtproxy && bash mtproxy.sh start > /dev/null 2>&1 &
+systemctl daemon-reload
+systemctl enable mtproxy
+systemctl start mtproxy
 ```
+
+## 全局命令&计划任务守护
+
+创建mtproxy 全局命令
+```bash
+cat > /usr/local/bin/MTProxy <<EOF
+#!/bin/bash
+cd /home/mtproxy && bash mtproxy.sh "\$@"
+EOF
+```
+
+>添加进程守护（防崩溃、防卡死）
+```bash
+(crontab -l 2>/dev/null; echo "* * * * * cd /home/mtproxy && bash mtproxy.sh start > /dev/null 2>&1 &") | crontab -
+```
+
+>命令功能
+```bash
+MTProxy start       # 启动
+MTProxy stop        # 停止
+MTProxy restart     # 重启
+MTProxy debug       # 调试
+systemctl status mtproxy  # 看运行状态
+```
+
+
+## 卸载安装
+停止服务 + 关闭开机自启 + 删除守护 + 删除整个目录
+```bash
+MTProxy stop
+systemctl stop mtproxy
+systemctl disable mtproxy
+rm -f /etc/systemd/system/mtproxy.service
+rm -f /usr/local/bin/MTProxy
+crontab -l | grep -v mtproxy | crontab -
+rm -rf /home/mtproxy```
+
+
 
 ## MTProxy Admin Bot
 
