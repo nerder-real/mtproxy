@@ -27,6 +27,7 @@ Telegram 群组：<https://t.me/EllerHK>
 - 使用 Docker (任意支持docker的系统均可)
 
   **小白建议使用 Docker!** 不会对宿主机造成污染，如果你需要修改一些配置文件，需要你稍微学习一些基础 Docker 使用技术。
+  
 
 ### 使用脚本
 
@@ -40,7 +41,6 @@ curl -fsSL -o mtproxy.sh https://github.com/ellermister/mtproxy/raw/master/mtpro
 bash mtproxy.sh
 ```
 
- ![mtproxy.sh](https://raw.githubusercontent.com/ellermister/mtproxy/master/preview.jpg)
 
 ### 使用 Docker | 白名单 MTProxy Docker 镜像
 
@@ -100,6 +100,7 @@ docker logs -f mtproxy
 
 更多使用请参考： <https://hub.docker.com/r/ellermister/mtproxy>
 
+
 ## 使用方式
 
 配置文件 `config`，如果你想手动修改密钥或者参数请注意格式。
@@ -109,7 +110,7 @@ vim /home/mtproxy/config
 
 ## 开机启动
 
-> 先创建系统服务
+>创建系统服务
 ```bash
 cat > /etc/systemd/system/mtproxy.service <<EOF
 [Unit]
@@ -136,9 +137,10 @@ systemctl enable mtproxy
 systemctl start mtproxy
 ```
 
+
 ## 全局命令&计划任务守护
 
-创建mtproxy 全局命令
+>创建mtproxy 全局命令
 ```bash
 cat > /usr/local/bin/MTProxy <<EOF
 #!/bin/bash
@@ -162,7 +164,7 @@ systemctl status mtproxy  # 看运行状态
 
 
 ## 卸载安装
-停止服务 + 关闭开机自启 + 删除守护 + 删除整个目录
+>停止服务 + 关闭开机自启 + 删除守护 + 删除整个目录
 ```bash
 MTProxy stop
 systemctl stop mtproxy
@@ -170,7 +172,8 @@ systemctl disable mtproxy
 rm -f /etc/systemd/system/mtproxy.service
 rm -f /usr/local/bin/MTProxy
 crontab -l | grep -v mtproxy | crontab -
-rm -rf /home/mtproxy```
+rm -rf /home/mtproxy
+```
 
 
 
